@@ -1,0 +1,245 @@
+#!/bin/bash
+#Saba Memon
+
+# ===CALL LIST VARS===
+declare -a callList
+declare -a numList
+declare -i randNum
+randNumTemp=0
+flag=0
+# ====================
+
+
+# =============exit 1==================
+FILE=$1
+if ! [[ -f $FILE ]] ; then
+    echo "input file missing or unreadable" 2>/dev/null
+    exit 1
+fi
+# =====================================
+
+
+# ==============exit 3==============
+# https://unix.stackexchange.com/questions/506776/syntax-for-checking-if-variable-contains-digits-only-in-bash
+seed=$(head -n 1 $1)
+if [[ $seed =~ ^[0-9]+$ ]]; then 
+    RANDOM=$seed
+else 
+    echo "seed line format error" 2>/dev/null
+    exit 3
+fi
+# ==================================
+
+
+# =====================exit 2==========================
+numlines=$(cat $1 | wc -l)
+
+if [ ${numlines} -ne 6 ] ; then
+    echo "input file must have 6 lines" 2>/dev/null
+    exit 2 
+else
+    # create LINUX Card
+    # https://www.unix.com/shell-programming-and-scripting/142815-insert-space-between-characters-using-sed.html
+    r1=$(sed -n '2p' $1)
+    # echo "r1 is the whole row: " $r1
+    row1=$(echo $r1 | sed 's/\(.\{3\}\)/\1 /g')
+    # echo "row1 is the whole row: " $row1
+    r2=$(sed -n '3p' $1)
+    row2=$(echo $r2 | sed 's/\(.\{3\}\)/\1 /g')
+    r3=$(sed -n '4p' $1)
+    row3=$(echo $r3 | sed 's/\(.\{3\}\)/\1 /g')
+    # mark 00
+    row3=$(echo "$row3" | sed "s/00/00m/g")
+    row3=$(echo "$row3" | sed "s/m  /m /g")
+    r4=$(sed -n '5p' $1)
+    row4=$(echo $r4 | sed 's/\(.\{3\}\)/\1 /g')
+    r5=$(sed -n '6p' $1)
+    row5=$(echo $r5 | sed 's/\(.\{3\}\)/\1 /g')
+fi
+#==========================================================
+
+
+# ======================================================exit4======================================================
+# check if: card numbers have exactly 2 digits, card contains unique integers, card contains whitespace, integers in correct ranges
+intsArr=(${r1:0:2} ${r2:0:2} ${r3:0:2} ${r4:0:2} ${r5:0:2} ${r1:3:2} ${r2:3:2} ${r3:3:2} ${r4:3:2} ${r5:3:2} ${r1:6:2} ${r2:6:2} \
+${r3:6:2} ${r4:6:2} ${r5:6:2} ${r1:9:2} ${r2:9:2} ${r3:9:2} ${r4:9:2} ${r5:9:2} ${r1:12:2} ${r2:12:2} ${r3:12:2} ${r4:12:2} ${r5:12:2})
+repeats=()
+# https://unix.stackexchange.com/questions/606259/testing-for-presence-of-duplicate-values-in-array
+for i in "${intsArr[@]}"; do
+    if [[ $i != "00" ]] && [[ $i =~ ^[0-9]+$ ]] ; then
+        i=$((10#$i))
+    # https://unix.stackexchange.com/questions/506776/syntax-for-checking-if-variable-contains-digits-only-in-bash
+    elif ! [[ $i =~ ^[0-9]+$ ]]; then
+        echo "card format error" 2>/dev/null
+        exit 4
+    fi
+    if [ -z "${repeats[i]}" ]; then
+        repeats[i]=1
+    else
+        echo "card format error" 2>/dev/null
+        exit 4
+    fi
+done
+
+# https://stackoverflow.com/questions/16679369/count-occurrences-of-a-char-in-a-string-using-bash
+row1Whitespace=$(echo "$r1" | grep -o " " | wc -l)
+row2Whitespace=$(echo "$r2" | grep -o " " | wc -l)
+row3Whitespace=$(echo "$r3" | grep -o " " | wc -l)
+row4Whitespace=$(echo "$r4" | grep -o " " | wc -l)
+row5Whitespace=$(echo "$r5" | grep -o " " | wc -l)
+if [ ${row1Whitespace} -gt 4 ] || [ ${row2Whitespace} -gt 4 ] || [ ${row3Whitespace} -gt 4 ] \
+|| [ ${row4Whitespace} -gt 4 ] || [ ${row5Whitespace} -gt 4 ] \
+|| [ ${#r1} -ne 14 ] || [ ${#r2} -ne 14 ] || [ ${#r3} -ne 14 ] || [ ${#r4} -ne 14 ] || [ ${#r5} -ne 14 ] \
+|| [ ${r1:0:2} -gt 15 ] || [ ${r2:0:2} -gt 15 ] || [ ${r3:0:2} -gt 15 ] || [ ${r4:0:2} -gt 15 ] || [ ${r5:0:2} -gt 15 ] \
+|| [ ${r1:3:2} -gt 30 ] || [ ${r2:3:2} -gt 30 ] || [ ${r3:3:2} -gt 30 ] || [ ${r4:3:2} -gt 30 ] || [ ${r5:3:2} -gt 30 ] \
+|| [ ${r1:6:2} -gt 45 ] || [ ${r2:6:2} -gt 45 ] || [ ${r3:6:2} -ne 00 ] || [ ${r4:6:2} -gt 45 ] || [ ${r5:6:2} -gt 45 ] \
+|| [ ${r1:9:2} -gt 60 ] || [ ${r2:9:2} -gt 60 ] || [ ${r3:9:2} -gt 60 ] || [ ${r4:9:2} -gt 60 ] || [ ${r5:9:2} -gt 60 ] \
+|| [ ${r1:12:2} -gt 75 ] || [ ${r2:12:2} -gt 75 ] || [ ${r3:12:2} -gt 75 ] || [ ${r4:12:2} -gt 75 ] || [ ${r5:12:2} -gt 75 ] ; then
+    echo "card format error" 2>/dev/null
+    exit 4
+fi
+# ============================================================================================
+
+
+# while user has not won
+while true ; do
+    echo "CALL LIST:" ${callList[*]}
+    echo " L   I   N   U   X"
+    echo -e "${row1}\n${row2}\n${row3}\n${row4}\n${row5}"
+    read -p "enter any key to get a call or q to quit: " userChar
+    
+    if [[ $userChar == "q" ]] ; then
+        exit 0
+    else
+        # check if randNum is in numList
+        while [ true ] ; do
+            # ==========generate random num=================
+            randNum=$[ 1 + $RANDOM % 75 ]
+            if [ ${#randNum} == 1 ] ; then
+                randNumTemp="$(printf "%02d\n" $randNum)"
+                unset randNum
+                randNum=$randNumTemp
+            fi
+
+            for element in "${numList[@]}"; do
+                if [[ "${randNum}" == "${element}" ]]; then
+                    flag=1
+                fi
+            done
+
+            if [[ $flag -eq 0 ]]; then
+                break
+            fi
+
+            flag=0
+        done
+        numList[${#numList[@]}]=${randNum}
+        # ===================================================
+
+
+        # ====generate corresponding letter to add to callList====
+        letter=""
+        if [ ${randNum} -ge 1 ] && [ ${randNum} -le 15 ] ; then
+            letter="L"
+        elif [ ${randNum} -ge 16 ] && [ ${randNum} -le 30 ] ; then
+            letter="I"
+        elif [ ${randNum} -ge 31 ] && [ ${randNum} -le 45 ] ; then
+            letter="N"
+        elif [ ${randNum} -ge 46 ] && [ ${randNum} -le 60 ] ; then
+            letter="U"
+        elif [ ${randNum} -ge 61 ] && [ ${randNum} -le 75 ] ; then
+            letter="X"
+        else
+            letter="L"
+        fi            
+        callList[${#callList[@]}]=${letter}${randNum}
+        # ========================================================
+
+
+        # ================update matrix/LINUX Card=================
+        if [[ $row1 =~ $randNum ]]; then
+            row1=$(echo "$row1" | sed "s/${randNum}/${randNum}m/g")
+            row1=$(echo "$row1" | sed "s/m  /m /g")
+        elif [[ $row2 =~ $randNum ]]; then
+            row2=$(echo "$row2" | sed "s/${randNum}/${randNum}m/g")
+            row2=$(echo "$row2" | sed "s/m  /m /g")
+        elif [[ $row3 =~ $randNum ]]; then
+            row3=$(echo "$row3" | sed "s/${randNum}/${randNum}m/g")
+            row3=$(echo "$row3" | sed "s/m  /m /g")
+        elif [[ $row4 =~ $randNum ]]; then
+            row4=$(echo "$row4" | sed "s/${randNum}/${randNum}m/g")
+            row4=$(echo "$row4" | sed "s/m  /m /g")
+        elif [[ $row5 =~ $randNum ]]; then
+            row5=$(echo "$row5" | sed "s/${randNum}/${randNum}m/g")
+            row5=$(echo "$row5" | sed "s/m  /m /g")
+        fi
+        # =========================================================
+
+
+        # ====================winner is found====================
+        winner () {
+            clear
+            echo "CALL LIST:" ${callList[*]}
+            echo " L   I   N   U   X"
+            echo -e "${row1}\n${row2}\n${row3}\n${row4}\n${row5}"
+            echo "WINNER"
+            exit 0
+        }
+        # =======================================================
+
+
+        # =======================row becomes fully marked===============================
+        numMarked1=$(echo "$row1" | grep -o "m" | wc -l)
+        numMarked2=$(echo "$row2" | grep -o "m" | wc -l)
+        numMarked3=$(echo "$row3" | grep -o "m" | wc -l)
+        numMarked4=$(echo "$row4" | grep -o "m" | wc -l)
+        numMarked5=$(echo "$row5" | grep -o "m" | wc -l)
+        if [ ${numMarked1} == 5 ] || [ ${numMarked2} == 5 ] || [ ${numMarked3} == 5 ] \
+        || [ ${numMarked4} == 5 ] || [ ${numMarked5} == 5 ]; then
+            winner
+        fi
+        # ==============================================================================
+
+
+        # ==========================================column becomes fully marked===========================================
+        if [ "${row1:2:1}" == "m" ] && [ "${row2:2:1}" == "m" ] && [ "${row3:2:1}" == "m" ] \
+        && [ "${row4:2:1}" == "m" ] && [ "${row5:2:1}" == "m" ] ; then
+            winner
+        fi
+        if [ "${row1:6:1}" == "m" ] && [ "${row2:6:1}" == "m" ] && [ "${row3:6:1}" == "m" ] \
+        && [ "${row4:6:1}" == "m" ] && [ "${row5:6:1}" == "m" ] ; then
+            winner
+        fi
+        if [ "${row1:10:1}" == "m" ] && [ "${row2:10:1}" == "m" ] && [ "${row3:10:1}" == "m" ] \
+        && [ "${row4:10:1}" == "m" ] && [ "${row5:10:1}" == "m" ] ; then
+            winner
+        fi
+        if [ "${row1:14:1}" == "m" ] && [ "${row2:14:1}" == "m" ] && [ "${row3:14:1}" == "m" ] \
+        && [ "${row4:14:1}" == "m" ] && [ "${row5:14:1}" == "m" ] ; then
+            winner
+        fi
+        if [ "${row1:${#row1}-1:1}" == "m" ] && [ "${row2:${#row2}-1:1}" == "m" ] && [ "${row3:${#row3}-1:1}" == "m" ] \
+        && [ "${row4:${#row4}-1:1}" == "m" ] && [ "${row5:${#row5}-1:1}" == "m" ] ; then
+            winner
+        fi
+        # ===============================================================================================================
+
+
+        # ======================all 4 corners become marked======================
+        row1corner1=${row1:2:1}
+        row1corner2=${row1:${#row1}-1:1}
+        row5corner1=${row5:2:1}
+        row5corner2=${row5:${#row5}-1:1}
+        if [[ "${row1corner1}" == "m" ]] && [[ "${row1corner2}" == "m" ]] \
+        && [[ "${row5corner1}" == "m" ]] && [[ "${row5corner2}" == "m" ]]; then
+            winner
+        fi
+        # =======================================================================
+
+
+    fi
+    clear
+
+done
+
+exit 0
