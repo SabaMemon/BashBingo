@@ -16,3 +16,5 @@ Ensure that each number includes 2 digits with one space in between, and the res
 <img width="354" alt="Screenshot 2024-02-23 at 11 01 34 PM" src="https://github.com/SabaMemon/BashBingo/assets/58344531/6e60b05e-d638-4ad0-a1b5-4f7f3ac50166">
 
 <img width="567" alt="Screenshot 2024-02-23 at 10 58 34 PM" src="https://github.com/SabaMemon/BashBingo/assets/58344531/9947d968-189a-48e2-9c12-e01b2945b3fb">
+
+Created for my Introduction to UNIX, C and C++ class.
